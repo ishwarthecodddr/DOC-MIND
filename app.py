@@ -84,13 +84,14 @@ collection = chroma_client.get_or_create_collection(
 # ============================================================
 # Gemini Embeddings
 # ============================================================
-
 def embed_texts(texts):
     """
-    Generate embeddings using Gemini Embedding 2.
+    Generate one embedding for each text.
 
-    Accepts either a single string or a list of strings.
-    Returns a list of embedding vectors.
+    Gemini's embedding response can behave differently depending
+    on how multiple contents are passed. Generating each embedding
+    individually guarantees a 1:1 mapping between documents and
+    embeddings.
     """
 
     if isinstance(texts, str):
@@ -99,14 +100,24 @@ def embed_texts(texts):
     if not texts:
         return []
 
-    response = client.models.embed_content(
-        model=EMBEDDING_MODEL,
-        contents=texts,
-    )
+    embeddings = []
 
-    return [embedding.values for embedding in response.embeddings]
+    for text in texts:
+        response = client.models.embed_content(
+            model=EMBEDDING_MODEL,
+            contents=text,
+        )
 
+        if not response.embeddings:
+            raise ValueError(
+                "Gemini returned no embedding for a document chunk."
+            )
 
+        embeddings.append(
+            response.embeddings[0].values
+        )
+
+    return embeddings
 # ============================================================
 # PDF Processing
 # ============================================================
