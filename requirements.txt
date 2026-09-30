@@ -1,5 +1,5 @@
-streamlit
-google-generativeai
+streamlit>=1.50,<2
+google-genai
 chromadb
 pypdf
 python-dotenv
